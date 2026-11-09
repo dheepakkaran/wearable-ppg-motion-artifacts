@@ -1,0 +1,240 @@
+{
+ "n_windows": 64697,
+ "subjects": [
+  "S1",
+  "S2",
+  "S3",
+  "S4",
+  "S5",
+  "S6",
+  "S7",
+  "S8",
+  "S9",
+  "S10",
+  "S11",
+  "S12",
+  "S13",
+  "S14",
+  "S15"
+ ],
+ "validation": "leave-one-subject-out",
+ "windows_per_activity": {
+  "transient": 17515,
+  "sitting": 4569,
+  "stairs": 3239,
+  "table_soccer": 2310,
+  "cycling": 3473,
+  "driving": 6843,
+  "lunch": 13554,
+  "walking": 4697,
+  "working": 8497
+ },
+ "methods": {
+  "plain_fft": {
+   "mae_all_windows": 17.11,
+   "mae_mean_of_subjects": 17.24,
+   "mae_std_of_subjects": 7.84,
+   "per_activity": {
+    "transient": 21.13,
+    "sitting": 2.73,
+    "stairs": 36.16,
+    "table_soccer": 27.93,
+    "cycling": 27.9,
+    "driving": 11.76,
+    "lunch": 12.57,
+    "walking": 27.13,
+    "working": 7.99
+   },
+   "per_subject": {
+    "S1": 11.58,
+    "S10": 13.58,
+    "S11": 24.24,
+    "S12": 12.55,
+    "S13": 9.25,
+    "S14": 13.17,
+    "S15": 12.91,
+    "S2": 13.78,
+    "S3": 16.63,
+    "S4": 19.32,
+    "S5": 40.16,
+    "S6": 23.68,
+    "S7": 8.49,
+    "S8": 15.42,
+    "S9": 23.84
+   }
+  },
+  "fft_motion_removed": {
+   "mae_all_windows": 16.32,
+   "mae_mean_of_subjects": 16.37,
+   "mae_std_of_subjects": 5.79,
+   "per_activity": {
+    "transient": 19.68,
+    "sitting": 4.06,
+    "stairs": 28.27,
+    "table_soccer": 26.49,
+    "cycling": 23.57,
+    "driving": 13.56,
+    "lunch": 13.21,
+    "walking": 23.14,
+    "working": 9.13
+   },
+   "per_subject": {
+    "S1": 12.97,
+    "S10": 13.1,
+    "S11": 19.5,
+    "S12": 12.92,
+    "S13": 11.22,
+    "S14": 13.79,
+    "S15": 12.1,
+    "S2": 16.67,
+    "S3": 13.2,
+    "S4": 19.62,
+    "S5": 32.85,
+    "S6": 18.1,
+    "S7": 8.29,
+    "S8": 18.13,
+    "S9": 23.03
+   }
+  },
+  "fft_motion_tracked": {
+   "mae_all_windows": 12.09,
+   "mae_mean_of_subjects": 12.15,
+   "mae_std_of_subjects": 5.82,
+   "per_activity": {
+    "transient": 14.27,
+    "sitting": 2.85,
+    "stairs": 24.28,
+    "table_soccer": 23.65,
+    "cycling": 24.8,
+    "driving": 8.71,
+    "lunch": 8.28,
+    "walking": 16.34,
+    "working": 6.01
+   },
+   "per_subject": {
+    "S1": 8.3,
+    "S10": 8.77,
+    "S11": 18.25,
+    "S12": 9.98,
+    "S13": 8.44,
+    "S14": 8.24,
+    "S15": 10.94,
+    "S2": 9.82,
+    "S3": 8.36,
+    "S4": 15.26,
+    "S5": 29.22,
+    "S6": 15.02,
+    "S7": 4.59,
+    "S8": 10.39,
+    "S9": 16.63
+   }
+  },
+  "gbm": {
+   "mae_all_windows": 8.21,
+   "mae_mean_of_subjects": 8.29,
+   "mae_std_of_subjects": 3.88,
+   "per_activity": {
+    "transient": 9.86,
+    "sitting": 4.23,
+    "stairs": 15.04,
+    "table_soccer": 13.22,
+    "cycling": 12.57,
+    "driving": 6.66,
+    "lunch": 5.94,
+    "walking": 10.41,
+    "working": 4.84
+   },
+   "per_subject": {
+    "S1": 7.91,
+    "S10": 5.82,
+    "S11": 8.97,
+    "S12": 11.79,
+    "S13": 5.19,
+    "S14": 5.12,
+    "S15": 5.66,
+    "S2": 7.26,
+    "S3": 4.83,
+    "S4": 7.49,
+    "S5": 19.94,
+    "S6": 9.48,
+    "S7": 3.95,
+    "S8": 11.41,
+    "S9": 9.47
+   }
+  },
+  "cnn": {
+   "mae_all_windows": 12.11,
+   "mae_mean_of_subjects": 12.43,
+   "mae_std_of_subjects": 5.94,
+   "per_activity": {
+    "transient": 12.3,
+    "sitting": 11.06,
+    "stairs": 23.72,
+    "table_soccer": 15.44,
+    "cycling": 25.72,
+    "driving": 9.66,
+    "lunch": 8.97,
+    "walking": 12.12,
+    "working": 8.42
+   },
+   "per_subject": {
+    "S1": 11.2,
+    "S10": 8.02,
+    "S11": 15.64,
+    "S12": 13.06,
+    "S13": 8.47,
+    "S14": 6.48,
+    "S15": 10.63,
+    "S2": 8.37,
+    "S3": 7.5,
+    "S4": 8.97,
+    "S5": 27.48,
+    "S6": 21.84,
+    "S7": 6.13,
+    "S8": 18.0,
+    "S9": 14.73
+   }
+  }
+ },
+ "model_info": {
+  "gbm": {
+   "k": 20,
+   "n_candidate_features": 91,
+   "times_selected_out_of_folds": {
+    "hr_plain_fft": 15,
+    "hr_motion_removed": 15,
+    "hr_tracked": 15,
+    "motion_weight": 15,
+    "acc_bp_std_max": 15,
+    "raw_peak1_bpm": 15,
+    "raw_peak2_bpm": 15,
+    "raw_peak3_bpm": 15,
+    "clean_peak1_bpm": 15,
+    "clean_peak2_bpm": 15,
+    "clean_peak3_bpm": 15,
+    "clean_bin_54bpm": 15,
+    "clean_bin_60bpm": 15,
+    "ppg_zero_cross_rate": 15,
+    "acc_mag_mean": 15,
+    "acc_mag_std": 15,
+    "acc_x_std": 15,
+    "acc_y_std": 15,
+    "raw_bin_114bpm": 14,
+    "clean_bin_66bpm": 13,
+    "acc_z_std": 1,
+    "raw_bin_108bpm": 1,
+    "raw_bin_120bpm": 1
+   },
+   "seconds": 179.1
+  },
+  "cnn": {
+   "epochs": 3,
+   "train_stride": 2,
+   "batch": 512,
+   "optimizer": "Adam lr 2e-3, L1 loss",
+   "params": 22785,
+   "input": "5 x 113 spectra (0.5-4 Hz): PPG, motion-removed PPG, acc x/y/z",
+   "train_seconds_total": 400.5
+  }
+ }
+}

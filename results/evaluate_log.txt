@@ -1,0 +1,28 @@
+cnn fold S1 mae 11.20 t=136s
+cnn fold S2 mae 8.37 t=161s
+cnn fold S3 mae 7.50 t=176s
+cnn fold S4 mae 8.97 t=189s
+cnn fold S5 mae 27.48 t=201s
+cnn fold S6 mae 21.84 t=234s
+cnn fold S7 mae 6.13 t=253s
+cnn fold S8 mae 18.00 t=272s
+cnn fold S9 mae 14.73 t=290s
+cnn fold S10 mae 8.02 t=307s
+cnn fold S11 mae 15.64 t=322s
+cnn fold S12 mae 13.06 t=336s
+cnn fold S13 mae 8.47 t=354s
+cnn fold S14 mae 6.48 t=381s
+cnn fold S15 mae 10.63 t=400s
+                        plain_fft  fft_motion_removed  fft_motion_tracked    gbm    cnn
+transient                   21.13               19.68               14.27   9.86  12.30
+sitting                      2.73                4.06                2.85   4.23  11.06
+stairs                      36.16               28.27               24.28  15.04  23.72
+table_soccer                27.93               26.49               23.65  13.22  15.44
+cycling                     27.90               23.57               24.80  12.57  25.72
+driving                     11.76               13.56                8.71   6.66   9.66
+lunch                       12.57               13.21                8.28   5.94   8.97
+walking                     27.13               23.14               16.34  10.41  12.12
+working                      7.99                9.13                6.01   4.84   8.42
+ALL (window mean)           17.11               16.32               12.09   8.21  12.11
+ALL (mean of subjects)      17.24               16.37               12.15   8.29  12.43
+598.15 s 752900 KB

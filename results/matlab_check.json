@@ -1,0 +1,9 @@
+{
+ "windows": 20,
+ "subject": "S1",
+ "max_abs_diff_plain_bpm": 1.000017846308765e-10,
+ "max_abs_diff_removed_bpm": 1.000017846308765e-10,
+ "max_abs_diff_motion_weight": 0.0,
+ "max_abs_diff_clean_spectrum": 1.1850000147806128e-11,
+ "scope": "FFT + Hann + normalisation + accelerometer spectrum subtraction + interpolated peak; band-pass applied in Python before export"
+}

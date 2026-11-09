@@ -1,0 +1,8 @@
+{
+ "engine": "MATLAB version: 26.2.0.3433840 (R2026b) Update 1",
+ "windows": 20,
+ "max_abs_diff_plain_bpm": 1.000017846308765e-10,
+ "max_abs_diff_removed_bpm": 1.000017846308765e-10,
+ "max_abs_diff_motion_weight": 0.0,
+ "max_abs_diff_clean_spectrum": 1.1850000147806128e-11
+}

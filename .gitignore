@@ -1,0 +1,11 @@
+.venv/
+data/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.npz
+*.pt
+.pixi/
+
+# local build notes (not published)
+BUILD-LOG.md

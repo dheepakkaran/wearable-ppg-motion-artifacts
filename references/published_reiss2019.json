@@ -1,0 +1,32 @@
+{
+ "citation": "Reiss A, Indlekofer I, Schmidt P, Van Laerhoven K. Deep PPG: Large-Scale Heart Rate Estimation with Convolutional Neural Networks. Sensors 2019;19(14):3079. doi:10.3390/s19143079. PMCID: PMC6679242",
+ "source_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6679242/",
+ "read_on": "2026-11-09 (numbers copied from the PMC full-text tables; quoted text below)",
+ "protocol": "PPG-DaLiA, 15 subjects, 8 s / 2 s windows, leave-one-session-out (= leave-one-subject-out). 'All' value = mean of the 15 per-session MAEs +/- std across sessions (checked: mean of the Table 10 CNN-ensemble row = 7.65).",
+ "mae_all_bpm": {
+  "SpaMa": "15.56 +/- 7.5",
+  "SpaMaPlus": "11.06 +/- 4.8",
+  "Schaeck2017": "20.45 +/- 7.1",
+  "CNN average (7 runs)": "8.82 +/- 3.8",
+  "CNN ensemble": "7.65 +/- 4.2",
+  "CNN constrained (26K params, embedded)": "9.99 +/- 5.9"
+ },
+ "per_activity_mae_bpm_table11": {
+  "columns": ["n_windows", "mean_hr", "CNN_ensemble", "SpaMaPlus"],
+  "transient": [17495, 94.72, 8.77, 14.34],
+  "sitting": [4573, 61.07, 4.93, 4.27],
+  "stairs": [3242, 118.53, 16.98, 25.42],
+  "table_soccer": [2312, 90.4, 12.16, 21.48],
+  "cycling": [3479, 123.05, 12.48, 11.97],
+  "driving": [6845, 84.7, 4.96, 6.24],
+  "lunch": [13552, 83.58, 5.22, 7.33],
+  "walking": [4697, 99.18, 9.21, 18.16],
+  "working": [8502, 76.4, 3.84, 4.91]
+ },
+ "quotes": [
+  "SpaMa ... 11.51 ± 3.7 15.56 ± 7.5 SpaMaPlus ... 9.45 ± 2.9 11.06 ± 4.8 Schaeck2017 ... 19.97 ± 8.1 20.45 ± 7.1",
+  "CNN ensemble 7.73 6.74 4.03 5.9 18.51 12.88 3.91 10.87 8.79 4.03 9.22 9.35 4.29 4.37 4.17 7.65 ± 4.2",
+  "The model achieves an MAE of 9.99 ± 5.9 bpm and 8.2 ± 3.6 bpm on the datasets PPG-DaLiA and W...",
+  "Transition 17,495 94.72 8.77 14.34 Sitting 4573 61.07 4.93 4.27 Stairs 3242 118.53 16.98 25.42 Table soccer 2312 90.4 12.16 21.48 Cycling 3479 123.05 12.48 11.97 Driving 6845 84.7 4.96 6.24 Lunch 13,552 83.58 5.22 7.33 Walking 4697 99.18 9.21 18.16 Working 8502 76.4 3.84 4.91"
+ ]
+}
