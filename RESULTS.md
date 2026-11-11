@@ -2,7 +2,7 @@
 
 Every number in this file is printed by `scripts/results_tables.py` from `results/metrics.json` (made by `src/evaluate.py`) and `references/published_reiss2019.json` (published values copied from the paper). Per-window predictions: `results/predictions.csv.gz`. Not a medical device; no clinical claims.
 
-**Setup:** all 15 subjects, 64,697 windows (8 s, 2 s shift), wrist PPG + wrist 3-axis accelerometer, reference HR from the dataset's ECG labels. Every method is scored leave-one-subject-out (15 folds; `tests/test_loso.py` checks that the test subject is never in training). The FFT methods have no trained parameters, so for them LOSO just means "scored per subject"; their four settings were hand-picked on S1, S2 and S6 (see BUILD-LOG), so those three subjects are slightly optimistic for the FFT rows.
+**Setup:** all 15 subjects, 64,697 windows (8 s, 2 s shift), wrist PPG + wrist 3-axis accelerometer, reference HR from the dataset's ECG labels. Every method is scored leave-one-subject-out (15 folds; `tests/test_loso.py` checks that the test subject is never in training). The FFT methods have no trained parameters, so for them LOSO just means "scored per subject"; their four settings were hand-picked on S1, S2 and S6 (a 2 × 2 grid of subtraction weight and motion threshold), so those three subjects are slightly optimistic for the FFT rows.
 
 ## Overall
 | Method (this repo, LOSO, 15 subjects) | MAE mean of subjects ± std (bpm) | MAE over all windows (bpm) | Worst activity |
@@ -17,7 +17,7 @@ What this shows:
 - **Motion removal alone helps a little** (17.24 → 16.37 bpm mean of subjects), mostly on stairs (36.16 → 28.27), cycling and walking. It hurts on quiet activities (sitting 2.73 → 4.06, working 7.99 → 9.13), where subtracting a low-motion accelerometer spectrum removes some of the real pulse peak.
 - **Motion removal + peak tracking** is the useful spectral method: 12.15 bpm, 29.5% lower MAE than the plain FFT baseline (17.24).
 - **Gradient boosting** on 20 selected spectral/motion features is the best model here: 8.29 ± 3.88 bpm.
-- **The small CNN** (22,785 parameters, 3 epochs, one seed, no ensemble) reaches 12.43 bpm: about the same as the spectral tracker, worse than gradient boosting. It is weakest on cycling (25.72) and sitting (11.06), probably undertrained (not tested further). It was cut to 3 epochs and every second training window to fit the time box.
+- **The small CNN** (22,785 parameters, 3 epochs, one seed, no ensemble) reaches 12.43 bpm: about the same as the spectral tracker, worse than gradient boosting. It is weakest on cycling (25.72) and sitting (11.06), probably undertrained (not tested further). It was cut to 3 epochs and every second training window to keep CPU training short (400 s in total).
 - **Hard subject:** S5 is the worst subject for every method (plain FFT 40.16, GBM 19.94). Reiss et al. also report S5 as their worst session (CNN ensemble 18.51) and note it is an outlier in mean heart rate.
 
 ## Per activity (MAE in bpm, mean over windows of that activity)
@@ -35,6 +35,7 @@ What this shows:
 
 
 ## Per subject (MAE in bpm)
+| Method | S1 | S2 | S3 | S4 | S5 | S6 | S7 | S8 | S9 | S10 | S11 | S12 | S13 | S14 | S15 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | Plain FFT peak (baseline) | 11.58 | 13.78 | 16.63 | 19.32 | 40.16 | 23.68 | 8.49 | 15.42 | 23.84 | 13.58 | 24.24 | 12.55 | 9.25 | 13.17 | 12.91 |
 | FFT + motion removal | 12.97 | 16.67 | 13.2 | 19.62 | 32.85 | 18.1 | 8.29 | 18.13 | 23.03 | 13.1 | 19.5 | 12.92 | 11.22 | 13.79 | 12.1 |
@@ -43,6 +44,7 @@ What this shows:
 | 1D CNN on spectra | 11.2 | 8.37 | 7.5 | 8.97 | 27.48 | 21.84 | 6.13 | 18.0 | 14.73 | 8.02 | 15.64 | 13.06 | 8.47 | 6.48 | 10.63 |
 
 Feature selection: SelectKBest(f_regression, k=20) of 91 candidate features, refit inside each of the 15 training folds. Times selected (out of 15 folds):
+`hr_plain_fft` 15, `hr_motion_removed` 15, `hr_tracked` 15, `motion_weight` 15, `acc_bp_std_max` 15, `raw_peak1_bpm` 15, `raw_peak2_bpm` 15, `raw_peak3_bpm` 15, `clean_peak1_bpm` 15, `clean_peak2_bpm` 15, `clean_peak3_bpm` 15, `clean_bin_54bpm` 15, `clean_bin_60bpm` 15, `ppg_zero_cross_rate` 15, `acc_mag_mean` 15, `acc_mag_std` 15, `acc_x_std` 15, `acc_y_std` 15, `raw_bin_114bpm` 14, `clean_bin_66bpm` 13, `acc_z_std` 1, `raw_bin_108bpm` 1, `raw_bin_120bpm` 1
 
 ## Feature selection (gradient boosting)
 
@@ -73,11 +75,11 @@ Setup differences (why this is a rough comparison, not a ranking):
 - No significance test was run; differences of ~1 bpm between rows should not be read as real.
 
 ## Where methods fail
-- **Stairs, cycling, table soccer** stay the hardest (worst activity for every method). On cycling, motion removal + tracking only moves 27.90 → 24.80 even though the wrist moves a lot (median band-passed acc std 0.173 g, `results/data_card.json`); gradient boosting gets it to 12.57. Why the spectral tracker fails there was not investigated in this session.
+- **Stairs, cycling, table soccer** stay the hardest (worst activity for every method). On cycling, motion removal + tracking only moves 27.90 → 24.80 even though the wrist moves a lot (median band-passed acc std 0.173 g, `results/data_card.json`); gradient boosting gets it to 12.57. Why the spectral tracker fails there has not been investigated yet.
 - **Sitting** is easy for the plain FFT (2.73) and the CNN is bad there (11.06), likely because the short CNN run did not learn the low-HR range well (not checked further).
 
 ## MATLAB / Octave cross-check
-`matlab/spectral_check.m` (plain MATLAB syntax, no toolboxes) re-implements the FFT motion-removal core and ran under GNU Octave 10.3.0 on 20 band-passed S1 windows (`results/matlab_windows.csv`). Against Python (`results/matlab_check.json`): max difference 1.0e-10 bpm for the plain and motion-removed HR peaks, 1.2e-11 on the cleaned spectra, 0 on the motion weight. The band-pass filter itself is applied in Python before export (MATLAB's `filtfilt` needs the Signal Processing Toolbox). A MATLAB Online run (`results/matlab_online_run.txt`) is still to do by Dheepak.
+`matlab/spectral_check.m` (plain MATLAB syntax, no toolboxes) re-implements the FFT motion-removal core and ran under GNU Octave 10.3.0 on 20 band-passed S1 windows (`results/matlab_windows.csv`). Against Python (`results/matlab_check.json`): max difference 1.0e-10 bpm for the plain and motion-removed HR peaks, 1.2e-11 on the cleaned spectra, 0 on the motion weight. The band-pass filter itself is applied in Python before export (MATLAB's `filtfilt` needs the Signal Processing Toolbox).
 
 ## MATLAB Online check (2026-11-09)
 `matlab/spectral_check.m` run in **MATLAB R2026b Update 1** (MATLAB Online) on the same 20 windows: max |MATLAB − Python| = 1.0e-10 bpm (plain and motion-removed HR), 0 on motion weight, 1.2e-11 on cleaned spectra. Log: `results/matlab_online_run.txt`; outputs: `results/matlab_online/`; comparison: `results/matlab_online_check.json` (spectra CSV stays in gitignored `data/`).

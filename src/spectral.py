@@ -17,7 +17,7 @@ HR_LO, HR_HI = 0.67, 3.5        # 40-210 bpm search band
 SOS = butter(4, [0.5, 4.0], btype="band", fs=FS, output="sos")
 FREQS = np.fft.rfftfreq(NFFT, 1 / FS)
 BAND = (FREQS >= HR_LO) & (FREQS <= HR_HI)
-MOTION_G = 0.05                 # band-passed acc std (g) at which motion removal reaches full weight (picked on S1,S2,S6; see BUILD-LOG)
+MOTION_G = 0.05                 # band-passed acc std (g) at which motion removal reaches full weight (picked on S1,S2,S6, not nested)
 SEARCH_BPM = 15.0
 
 

@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wrist PPG Heart Rate</title>
+<meta name="description" content="Heart rate from wrist PPG under arm motion: FFT with accelerometer motion removal, gradient boosting and a 1D CNN, leave-one-subject-out on PPG-DaLiA, compared with published Deep PPG results.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff; --ink:#0a0a0a; --ink2:#3d3d3d; --muted:#737373; --line:#e5e5e5; --soft:#f5f5f5;
+  --bar0:#d4d4d4; --bar1:#0a0a0a;
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#0a0a0a;--ink:#fafafa;--ink2:#d4d4d4;--muted:#a3a3a3;--line:#262626;--soft:#141414;--bar0:#404040;--bar1:#fafafa}
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.7 Inter,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--ink);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+a:hover{text-decoration-thickness:2px}
+.wrap{max-width:960px;margin:0 auto;padding:0 24px}
+.narrow{max-width:680px}
+
+nav{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:saturate(1.4) blur(8px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:26px;height:56px;overflow-x:auto;white-space:nowrap}
+nav .brand{font-weight:600;letter-spacing:-.01em;text-decoration:none;margin-right:auto}
+nav a{font-size:14px;color:var(--muted);text-decoration:none} nav a:hover{color:var(--ink)}
+
+header{padding:112px 0 88px;border-bottom:1px solid var(--line)}
+.kicker{font:500 12px/1 "JetBrains Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font-size:clamp(38px,6vw,64px);line-height:1.05;letter-spacing:-.035em;font-weight:700;margin:22px 0 26px;max-width:820px}
+.lede{font-size:20px;line-height:1.6;color:var(--ink2);max-width:680px;margin:0}
+.meta{display:flex;gap:28px;flex-wrap:wrap;margin-top:34px;font-size:14px;color:var(--muted)}
+.meta a{color:var(--ink)}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.stat{padding:30px 24px 30px 0}
+.stat + .stat{padding-left:24px;border-left:1px solid var(--line)}
+.stat .v{font-size:40px;font-weight:600;letter-spacing:-.035em;line-height:1;font-variant-numeric:tabular-nums}
+.stat .l{font-size:14px;color:var(--muted);margin-top:10px;line-height:1.45}
+
+section{padding:96px 0;border-bottom:1px solid var(--line)}
+.num{font:500 12px/1 "JetBrains Mono",monospace;color:var(--muted);letter-spacing:.06em;margin-bottom:18px}
+h2{font-size:clamp(28px,3.6vw,38px);line-height:1.15;letter-spacing:-.03em;font-weight:700;margin:0 0 20px;max-width:760px}
+h3{font-size:17px;font-weight:600;letter-spacing:-.01em;margin:0 0 6px}
+p{margin:0 0 16px;color:var(--ink2)}
+.muted{color:var(--muted)}
+
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:48px}
+.cols3{display:grid;grid-template-columns:repeat(3,1fr);gap:36px}
+.item{border-top:1px solid var(--ink);padding-top:18px}
+.item p{font-size:15.5px;margin:0}
+
+table{width:100%;border-collapse:collapse;font-size:15px;margin:8px 0 0}
+th,td{text-align:left;padding:13px 12px 13px 0;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+td b{font-weight:600;color:var(--ink)}
+
+figure{margin:40px 0 0}
+figcaption{font-size:13.5px;color:var(--muted);margin-top:14px}
+.panel{border:1px solid var(--line);border-radius:4px;padding:28px}
+svg text{font-family:Inter,system-ui,sans-serif}
+.chart{width:100%;height:auto;display:block}
+.chart .gl{stroke:var(--line)} .chart .lab{fill:var(--ink);font-size:13px;font-weight:500}
+.chart .val{fill:var(--ink);font:500 12.5px "JetBrains Mono",monospace} .chart .val0{fill:var(--muted);font:500 12.5px "JetBrains Mono",monospace}
+.bar{transition:width 1s cubic-bezier(.25,.8,.25,1)}
+.key{display:flex;gap:22px;font-size:13px;color:var(--muted);margin-top:14px}
+.key i{display:inline-block;width:10px;height:10px;margin-right:7px;vertical-align:0}
+
+.pipe{width:100%;height:auto;display:block}
+.pipe rect{fill:var(--bg);stroke:var(--ink);stroke-width:1.2}
+.pipe .soft{stroke:var(--line);stroke-width:1.2}
+.pipe text{fill:var(--ink);font-size:13.5px;font-weight:600}
+.pipe .s{fill:var(--muted);font-size:11.5px;font-weight:400}
+.pipe path{stroke:var(--muted);stroke-width:1.2;fill:none}
+
+ol.steps{list-style:none;padding:0;margin:0;counter-reset:s}
+ol.steps li{counter-increment:s;display:grid;grid-template-columns:48px 1fr;padding:22px 0;border-bottom:1px solid var(--line)}
+ol.steps li::before{content:counter(s,decimal-leading-zero);font:500 13px "JetBrains Mono",monospace;color:var(--muted);padding-top:2px}
+ol.steps h3{margin-bottom:4px} ol.steps p{margin:0;font-size:15.5px}
+
+pre{background:var(--soft);border:1px solid var(--line);border-radius:4px;padding:22px;overflow:auto;font:13.5px/1.75 "JetBrains Mono",monospace;color:var(--ink);margin:0}
+.btns{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}
+.btn{display:inline-block;padding:11px 18px;border:1px solid var(--ink);border-radius:4px;text-decoration:none;font-size:15px;font-weight:500}
+.btn.solid{background:var(--ink);color:var(--bg)}
+.btn:hover{text-decoration:none;opacity:.85}
+footer{padding:44px 0 64px;font-size:13.5px;color:var(--muted)}
+
+.fade{opacity:0;transform:translateY(10px);transition:opacity .7s ease,transform .7s ease}
+.fade.in{opacity:1;transform:none}
+
+@media (max-width:820px){
+  .stats{grid-template-columns:1fr 1fr}.stat:nth-child(3){padding-left:0;border-left:0}.stat:nth-child(n+3){border-top:1px solid var(--line)}
+  .cols,.cols3{grid-template-columns:1fr;gap:28px} section{padding:72px 0} header{padding:80px 0 64px}
+  th:nth-child(1),td:nth-child(1){padding-right:8px}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;scroll-behavior:auto!important}.fade{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+  <a class="brand" href="#">Wrist PPG Heart Rate</a>
+  <a href="#problem">Problem</a><a href="#approach">Approach</a><a href="#results">Results</a><a href="#demo">Demo</a><a href="#lessons">Lessons</a><a href="#run">Run</a>
+  <a href="https://github.com/dheepakkaran/wearable-ppg-motion-artifacts">GitHub</a>
+</div></nav>
+
+<header>
+  <div class="wrap">
+    <div class="kicker">Research project · public data · November 2026</div>
+    <h1>Reading heart rate from a wrist sensor while the arm keeps moving.</h1>
+    <p class="lede">An FFT method that uses the accelerometer to remove motion, plus gradient boosting and a small 1D CNN, each tested on people it never saw, on the public PPG-DaLiA dataset and against the published Deep PPG results.</p>
+    <div class="meta"><span>Python · SciPy · scikit-learn · PyTorch · MATLAB R2026b</span><a href="https://github.com/dheepakkaran/wearable-ppg-motion-artifacts">Source code</a><a href="https://github.com/dheepakkaran/wearable-ppg-motion-artifacts/blob/main/RESULTS.md">Full results</a><a href="https://github.com/dheepakkaran/wearable-ppg-motion-artifacts/blob/main/DATA_QUALITY.md">Data card</a></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="stats">
+    <div class="stat"><div class="v" data-count="8.29" data-dec="2">8.29</div><div class="l">bpm error, gradient boosting on unseen subjects. Plain FFT: 17.24.</div></div>
+    <div class="stat"><div class="v" data-count="29.5" data-dec="1" data-suffix="%">29.5%</div><div class="l">lower error from motion removal plus tracking, against the plain FFT.</div></div>
+    <div class="stat"><div class="v" data-count="0.64" data-dec="2">0.64</div><div class="l">bpm behind the published Deep PPG CNN ensemble (7.65).</div></div>
+    <div class="stat"><div class="v" data-count="15">15</div><div class="l">subjects, 64,697 eight-second windows, each subject left out once.</div></div>
+  </div>
+</div>
+
+<section id="problem">
+  <div class="wrap">
+    <div class="num">01 — Problem</div>
+    <h2 class="fade">When the arm swings, the motion is louder than the pulse.</h2>
+    <div class="narrow fade">
+      <p>Smartwatches read heart rate by shining light into the wrist (photoplethysmography, PPG). At rest this works well. When the arm moves, blood and sensor move too, and the motion rhythm often shows up in the spectrum stronger than the heartbeat. An arm swing of about 55 cycles per minute can then be read as a heart rate of 55 bpm.</p>
+    </div>
+    <div class="cols" style="margin-top:40px">
+      <div class="item fade"><h3>What the watch already has</h3><p>A 3-axis accelerometer that sees the motion directly. If a peak in the PPG spectrum is also in the accelerometer spectrum, it is probably motion, not pulse.</p></div>
+      <div class="item fade"><h3>What has to be shown</h3><p>How much that helps, per activity, on people the method was not tuned on, and how it compares with the published numbers on the same data.</p></div>
+    </div>
+    <div class="cols3" style="margin-top:48px">
+      <div class="fade"><h3>Data</h3><p class="muted" style="font-size:15.5px">PPG-DaLiA: 15 people wearing a wrist sensor through sitting, stairs, table soccer, cycling, driving, lunch, walking and work.</p></div>
+      <div class="fade"><h3>Ground truth</h3><p class="muted" style="font-size:15.5px">Heart rate from manually corrected chest-ECG R-peaks, one value per 8-second window.</p></div>
+      <div class="fade"><h3>What it is not</h3><p class="muted" style="font-size:15.5px">A medical device or a clinical claim. It is a measured comparison of methods on open data.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="approach">
+  <div class="wrap">
+    <div class="num">02 — Approach</div>
+    <h2 class="fade">A spectral baseline first, then motion removal, tracking and learned models on top.</h2>
+    <figure class="panel fade">
+      <svg viewBox="0 0 900 250" class="pipe" role="img" aria-label="Pipeline: PPG-DaLiA, streaming windows, FFT motion removal and features, models, leave-one-subject-out; MATLAB cross-check of the FFT core; comparison with published results">
+        <defs><marker id="ar" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 z" style="fill:var(--muted);stroke:none"/></marker></defs>
+        <rect x="10" y="40" width="130" height="64" rx="3" class="soft"/><text x="75" y="69" text-anchor="middle">PPG-DaLiA</text><text x="75" y="88" text-anchor="middle" class="s">wrist PPG + accel</text>
+        <rect x="180" y="40" width="130" height="64" rx="3"/><text x="245" y="69" text-anchor="middle">Stream</text><text x="245" y="88" text-anchor="middle" class="s">8 s windows</text>
+        <rect x="350" y="40" width="150" height="64" rx="3"/><text x="425" y="69" text-anchor="middle">FFT + motion</text><text x="425" y="88" text-anchor="middle" class="s">subtract accel spectrum</text>
+        <rect x="540" y="40" width="130" height="64" rx="3"/><text x="605" y="69" text-anchor="middle">Models</text><text x="605" y="88" text-anchor="middle" class="s">boosting · CNN</text>
+        <rect x="710" y="40" width="180" height="64" rx="3"/><text x="800" y="69" text-anchor="middle">Evaluate</text><text x="800" y="88" text-anchor="middle" class="s">leave one subject out</text>
+        <rect x="300" y="160" width="250" height="56" rx="3" class="soft"/><text x="425" y="185" text-anchor="middle">MATLAB cross-check</text><text x="425" y="203" text-anchor="middle" class="s">same FFT core, R2026b</text>
+        <rect x="710" y="160" width="180" height="56" rx="3" style="fill:var(--ink)"/><text x="800" y="185" text-anchor="middle" style="fill:var(--bg)">vs published</text><text x="800" y="203" text-anchor="middle" class="s" style="fill:var(--bar0)">Reiss et al. 2019</text>
+        <path d="M140,72 H180" marker-end="url(#ar)"/><path d="M310,72 H350" marker-end="url(#ar)"/><path d="M500,72 H540" marker-end="url(#ar)"/><path d="M670,72 H710" marker-end="url(#ar)"/>
+        <path d="M425,104 V160" marker-end="url(#ar)"/><path d="M800,104 V160" marker-end="url(#ar)"/>
+      </svg>
+    </figure>
+    <ol class="steps" style="margin-top:40px">
+      <li class="fade"><div><h3>Stream the data in small pieces</h3><p>Each subject file is 0.8 to 1.6 GB, mostly chest signals at 700 Hz. A lean unpickler skips them, so peak memory stays near 240 MB, and the wrist signals are cut into 8-second windows every 2 seconds.</p></div></li>
+      <li class="fade"><div><h3>FFT with motion removal</h3><p>Band-pass 0.5–4 Hz, Hann-windowed FFT of the PPG and each accelerometer axis. The motion spectrum is subtracted, weighted by how much the wrist moves, and the heart rate is the interpolated peak.</p></div></li>
+      <li class="fade"><div><h3>Track across windows</h3><p>Heart rate cannot jump 40 bpm in two seconds. The tracker looks for the peak within 15 bpm of the previous estimate, using past windows only and no labels.</p></div></li>
+      <li class="fade"><div><h3>Learn when to trust which estimate</h3><p>Gradient boosting on 20 of 91 spectral and motion features, picked inside each fold, and a 22,785-parameter 1D CNN on the spectra. Every method is scored leave-one-subject-out.</p></div></li>
+    </ol>
+    <div class="cols3" style="margin-top:56px">
+      <div class="item fade"><h3>Split by subject</h3><p>Windows overlap by 75%, so a window split would leak.</p></div>
+      <div class="item fade"><h3>Baseline in every table</h3><p>The plain FFT shows what each step adds.</p></div>
+      <div class="item fade"><h3>Published numbers quoted</h3><p>Stored with their table numbers, so the comparison can be checked.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="results">
+  <div class="wrap">
+    <div class="num">03 — Results</div>
+    <h2 class="fade">Tracking helps the FFT. Gradient boosting comes close to the published best.</h2>
+    <div class="narrow fade"><p>Mean absolute error in beats per minute, mean of the 15 subjects. Lower is better.</p></div>
+
+    <figure class="fade">
+      <h3>Error by activity</h3>
+      <p class="muted" style="font-size:15px">MAE in bpm, bar length to 40 bpm.</p>
+      <svg viewBox="0 0 900 290" class="chart" id="c1"></svg>
+      <div class="key"><span><i style="background:var(--bar0)"></i>Plain FFT peak</span><span><i style="background:var(--bar1)"></i>Gradient boosting</span></div>
+      <figcaption>Walking makes the plain FFT about ten times worse than sitting. Gradient boosting cuts stairs from 36.16 to 15.04, but at rest the plain FFT is already better (2.73 against 4.23).</figcaption>
+    </figure>
+
+    <figure class="fade" style="margin-top:64px">
+      <h3>Against the published results on the same data</h3>
+      <p class="muted" style="font-size:15px">MAE in bpm, bar length to 20 bpm. Closest published counterpart for each method.</p>
+      <svg viewBox="0 0 900 230" class="chart" id="c2"></svg>
+      <div class="key"><span><i style="background:var(--bar0)"></i>Published (Reiss et al. 2019)</span><span><i style="background:var(--bar1)"></i>This repo</span></div>
+      <figcaption>A rough comparison: the published CNN trained 15,000 iterations with a validation set; this one ran 3 epochs on one seed. No significance test was run.</figcaption>
+    </figure>
+
+    <div style="margin-top:64px" class="fade">
+      <table>
+        <thead><tr><th>Method</th><th>MAE (bpm)</th><th>Worst activity</th></tr></thead>
+        <tbody>
+          <tr><td>Plain FFT peak (baseline)</td><td class="n">17.24 ± 7.84</td><td>stairs 36.16</td></tr>
+          <tr><td>FFT + accelerometer motion removal</td><td class="n">16.37 ± 5.79</td><td>stairs 28.27</td></tr>
+          <tr><td>FFT + motion removal + tracking</td><td class="n">12.15 ± 5.82</td><td>cycling 24.80</td></tr>
+          <tr><td>Gradient boosting, 20 features</td><td class="n"><b>8.29 ± 3.88</b></td><td>stairs 15.04</td></tr>
+          <tr><td>1D CNN on spectra</td><td class="n">12.43 ± 5.94</td><td>cycling 25.72</td></tr>
+          <tr><td>MATLAB R2026b vs Python, FFT core</td><td class="n"><b>1e-10</b></td><td>max difference in bpm, 20 windows</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="demo">
+  <div class="wrap">
+    <div class="num">Demo</div>
+    <h2 class="fade">One walking window, and one whole recording.</h2>
+    <figure class="fade">
+      <img src="assets/demo-motion-removal-window.png" alt="An 8-second walking window: wrist PPG and accelerometer signals on the left; on the right the PPG spectrum peaks at 55 bpm from arm swing, and after motion removal the peak is at 88.8 bpm, matching the ECG reference" style="width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:4px">
+      <figcaption>Subject S1, window 3543 (walking), computed with the repo's own <code>src/spectral.py</code>. The arm swing puts the biggest PPG peak at 55.0 bpm; subtracting the accelerometer spectrum leaves 88.8 bpm against an ECG reference of 88.8. Picked as a clear example; on average, motion removal alone helps only a little.</figcaption>
+    </figure>
+    <figure class="fade" style="margin-top:56px">
+      <img src="assets/demo-s1-heart-rate-trace.png" alt="Heart rate over 153 minutes for subject S1: ECG reference, plain FFT estimates, tracked FFT and gradient boosting, with activities shaded" style="width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:4px">
+      <figcaption>All 4,603 windows of S1 from the committed <code>results/predictions.csv.gz</code>. The plain FFT drops to the arm-swing rate during walking and stairs; gradient boosting, trained without S1, follows the reference most closely (MAE 7.91 bpm). Drawn by <code>scripts/make_demo_figures.py</code>.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="lessons">
+  <div class="wrap">
+    <div class="num">04 — Lessons</div>
+    <h2 class="fade">What broke, and what the numbers do not show.</h2>
+    <ol class="steps">
+      <li class="fade"><div><h3>The accelerometer was scaled twice</h3><p>The dataset readme says 1/64 g, but that is for the raw CSV; the pickles are already in g. The first extraction divided again. It was fixed in the extractor, and older files are corrected on load.</p></div></li>
+      <li class="fade"><div><h3>Motion removal hurts when nothing moves</h3><p>Sitting goes from 2.73 to 4.06 bpm: subtracting a near-silent accelerometer spectrum removes part of the real pulse peak. The motion weight limits this but does not remove it.</p></div></li>
+      <li class="fade"><div><h3>The CNN had to be cut back</h3><p>The first run took 99 seconds per fold. The final one is 3 epochs on every second window, one seed, 400 seconds in total, and it is weaker than gradient boosting, especially on cycling and sitting.</p></div></li>
+      <li class="fade"><div><h3>Some subjects and activities stay hard</h3><p>S5 is the worst subject for every method, as in the paper. Cycling defeats the spectral tracker (27.90 to 24.80) even though the wrist moves a lot; the reason is not yet known.</p></div></li>
+    </ol>
+    <div class="cols" style="margin-top:56px">
+      <div class="fade"><h3>Limits</h3><p style="font-size:15.5px">The four spectral settings were hand-picked on 3 of the 15 subjects, not nested, so the FFT rows are slightly optimistic for them. The CNN is untuned. Differences of about 1 bpm between rows should not be read as real.</p></div>
+      <div class="fade"><h3>Next</h3><p style="font-size:15.5px">Nested tuning of the spectral settings, a longer CNN run with a small ensemble, a per-window quality flag so a watch can report no reading instead of a wrong one, and a look at why tracking fails on cycling.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="run" style="border-bottom:0">
+  <div class="wrap">
+    <div class="num">05 — Run</div>
+    <h2 class="fade">One command, from the public download to the results table.</h2>
+<pre class="fade">git clone https://github.com/dheepakkaran/wearable-ppg-motion-artifacts.git
+cd wearable-ppg-motion-artifacts
+make reproduce   # env, PPG-DaLiA (2.7 GB), windows, tests, features, evaluate, Octave check
+make test        # 5 checks: motion removal on a synthetic pulse, subject split
+uv run --with matplotlib --with numpy --with scipy --with pandas \
+  python scripts/make_demo_figures.py</pre>
+    <div class="btns">
+      <a class="btn solid" href="https://github.com/dheepakkaran/wearable-ppg-motion-artifacts">View on GitHub</a>
+      <a class="btn" href="https://github.com/dheepakkaran/wearable-ppg-motion-artifacts/blob/main/RESULTS.md">Results</a>
+      <a class="btn" href="https://github.com/dheepakkaran/wearable-ppg-motion-artifacts/blob/main/DATA_QUALITY.md">Data card</a>
+    </div>
+  </div>
+</section>
+
+<footer><div class="wrap">Dheepak Karan Elumalai Santhakumari · Independent project on public data; not a medical device, no clinical claim. Data: PPG-DaLiA (Reiss, Indlekofer, Schmidt; UCI Machine Learning Repository, doi:10.24432/C53890, CC BY 4.0). Published comparison: Reiss et al., Sensors 2019, doi:10.3390/s19143079. Code: MIT.</div></footer>
+
+<script>
+const NS = "http://www.w3.org/2000/svg", reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); p && p.appendChild(e); return e; };
+const txt = (p, a, s) => { const t = el("text", a, p); t.textContent = s; return t; };
+
+function bars(id, rows) {
+  const s = document.getElementById(id), L = 230, R = 820, top = 10, rh = 54, bh = 14;
+  [0, .5, 1].forEach(f => el("line", {x1: L + (R - L) * f, x2: L + (R - L) * f, y1: 4, y2: top + rh * rows.length - 8, class: "gl"}, s));
+  rows.forEach((r, i) => {
+    const y = top + i * rh;
+    txt(s, {x: 0, y: y + bh + 6, class: "lab"}, r.label);
+    [[r.a, r.at, "var(--bar0)", "val0"], [r.b, r.bt, "var(--bar1)", "val"]].forEach(([v, t, c, cl], k) => {
+      const yy = y + k * (bh + 5), w = (R - L) * v;
+      const b = el("rect", {x: L, y: yy, height: bh, width: reduce ? Math.max(w, 1) : 0, fill: c, class: "bar"}, s); b.dataset.w = Math.max(w, 1);
+      txt(s, {x: L + Math.max(w, 1) + 8, y: yy + bh - 2, class: cl}, t);
+    });
+  });
+}
+bars("c1", [
+  {label: "Sitting", a: 2.73 / 40, at: "2.73", b: 4.23 / 40, bt: "4.23"},
+  {label: "Driving", a: 11.76 / 40, at: "11.76", b: 6.66 / 40, bt: "6.66"},
+  {label: "Walking", a: 27.13 / 40, at: "27.13", b: 10.41 / 40, bt: "10.41"},
+  {label: "Cycling", a: 27.90 / 40, at: "27.90", b: 12.57 / 40, bt: "12.57"},
+  {label: "Stairs", a: 36.16 / 40, at: "36.16", b: 15.04 / 40, bt: "15.04"}]);
+bars("c2", [
+  {label: "Classical spectral", a: 15.56 / 20, at: "15.56 SpaMa", b: 16.37 / 20, bt: "16.37 motion removal"},
+  {label: "Spectral + tracking", a: 11.06 / 20, at: "11.06 SpaMaPlus", b: 12.15 / 20, bt: "12.15 tracking"},
+  {label: "CNN, single model", a: 8.82 / 20, at: "8.82 avg of 7 runs", b: 12.43 / 20, bt: "12.43 3 epochs"},
+  {label: "Best result", a: 7.65 / 20, at: "7.65 CNN ensemble", b: 8.29 / 20, bt: "8.29 boosting"}]);
+
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return; const t = e.target; t.classList.add("in");
+  t.querySelectorAll(".bar").forEach(b => b.setAttribute("width", b.dataset.w));
+  io.unobserve(t);
+}), {threshold: .15});
+document.querySelectorAll(".fade").forEach(e => io.observe(e));
+
+if (!reduce) document.querySelectorAll("[data-count]").forEach(n => {
+  const to = +n.dataset.count, dec = +(n.dataset.dec || 0), pre = n.dataset.prefix || "", suf = n.dataset.suffix || "", t0 = performance.now();
+  const f = now => { const p = Math.min(1, (now - t0) / 1100), v = to * (1 - Math.pow(1 - p, 3)); n.textContent = pre + v.toFixed(dec) + suf; if (p < 1) requestAnimationFrame(f); };
+  requestAnimationFrame(f);
+});
+</script>
+</body>
+</html>
