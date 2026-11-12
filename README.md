@@ -18,6 +18,10 @@ leave-one-subject-out on the public PPG-DaLiA dataset and compared with the publ
 ![tests](https://img.shields.io/badge/tests-5%20passing-22c55e)
 ![license](https://img.shields.io/badge/code-MIT-blue)
 
+<a href="https://dheepakkaran.github.io/wearable-ppg-motion-artifacts/#overview"><img src="docs/media/overview.webp" alt="35-second overview: the watch reads 55 bpm while walking, the real heart rate is 88.8; removing the arm-swing motion and a small model bring the error down to 8.29 bpm" width="100%"></a>
+
+<sub>35-second overview (silent preview). <a href="https://dheepakkaran.github.io/wearable-ppg-motion-artifacts/#overview">Watch it with sound on the project page →</a></sub>
+
 </div>
 
 > **Research project on public data.** Not a medical device, no clinical claim. Independent project.
